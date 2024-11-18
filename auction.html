@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Boston Auction</title>
+		<link
+			href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+			rel="stylesheet"
+		/>
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css"
+		/>
+		<style>
+			.status-on-time {
+				color: #16a34a;
+			}
+			.status-postponed {
+				color: #ca8a04;
+			}
+			.status-cancelled {
+				color: #dc2626;
+			}
+
+			.status-count {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				min-width: 20px;
+				height: 20px;
+				padding: 0 6px;
+				border-radius: 10px;
+				background-color: #e9ecef;
+				font-size: 12px;
+				margin-left: 6px;
+			}
+
+			.status-count.active {
+				background-color: #d1fae5;
+				color: #16a34a;
+			}
+			.status-count.postponed {
+				background-color: #fef3c7;
+				color: #ca8a04;
+			}
+			.status-count.cancelled {
+				background-color: #fee2e2;
+				color: #dc2626;
+			}
+
+			.records-summary {
+				background-color: #f8f9fa;
+				padding: 10px 15px;
+				border-radius: 6px;
+				margin-bottom: 1rem;
+				border: 1px solid #dee2e6;
+			}
+
+			.date-picker-wrapper {
+				position: relative;
+				display: inline-block;
+			}
+
+			.filter-group {
+				display: flex;
+				gap: 1rem;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+
+			.search-input {
+				max-width: 300px;
+			}
+
+			@media (max-width: 768px) {
+				.filter-group {
+					flex-direction: column;
+					align-items: stretch;
+				}
+				.search-input {
+					max-width: 100%;
+				}
+				.records-summary .row > div {
+					margin-bottom: 0.5rem;
+				}
+			}
+
+			.datepicker {
+				z-index: 1000;
+			}
+
+			.table-responsive {
+				box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+				border-radius: 6px;
+			}
+
+			.table {
+				margin-bottom: 0;
+			}
+
+			.table thead th {
+				background-color: #f8f9fa;
+				border-bottom: 2px solid #dee2e6;
+			}
+
+			.input-group {
+				flex-wrap: nowrap;
+			}
+
+			.input-group .form-control {
+				min-width: 100px;
+			}
+
+			@media (max-width: 768px) {
+				.input-group {
+					max-width: 100% !important;
+				}
+			}
+
+			.records-summary {
+				background-color: #f8f9fa;
+				padding: 15px;
+				border-radius: 6px;
+				margin-bottom: 1rem;
+				border: 1px solid #dee2e6;
+			}
+
+			.summary-item {
+				margin-bottom: 0;
+			}
+
+			.price-filter-group {
+				display: flex;
+				justify-content: flex-end;
+			}
+
+			.price-inputs {
+				display: flex;
+				gap: 10px;
+				width: 100%;
+			}
+
+			.price-inputs .input-group {
+				flex: 1;
+				min-width: 0;
+			}
+
+			.input-group .form-control {
+				min-width: 0;
+			}
+
+			@media (max-width: 991.98px) {
+				.price-filter-group {
+					justify-content: flex-start;
+				}
+
+				.summary-item {
+					margin-bottom: 10px;
+				}
+			}
+
+			@media (max-width: 767.98px) {
+				.price-inputs {
+					flex-direction: column;
+				}
+
+				.price-inputs .input-group {
+					width: 100%;
+					max-width: none;
+				}
+
+				.summary-item {
+					text-align: left;
+				}
+			}
+
+			@media (max-width: 768px) {
+				.container.py-4 {
+					padding-left: 20px !important;
+					padding-right: 20px !important;
+				}
+
+				.row.g-3 > * {
+					margin-bottom: 1rem;
+				}
+
+				.date-picker-wrapper {
+					width: 100%;
+					margin-bottom: 0.5rem;
+				}
+
+				.date-picker-wrapper:last-child {
+					margin-bottom: 0;
+				}
+
+				.filter-group .btn-outline-secondary {
+					width: 100%;
+					margin-top: 0.5rem;
+				}
+
+				.form-check {
+					margin-bottom: 0.5rem;
+				}
+
+				.records-summary {
+					padding: 15px;
+					margin-top: 1rem;
+				}
+
+				.summary-item {
+					padding: 0.5rem 0;
+					border-bottom: 1px solid #dee2e6;
+				}
+
+				.summary-item:last-child {
+					border-bottom: none;
+					padding-bottom: 0;
+				}
+
+				.price-inputs {
+					gap: 15px;
+				}
+
+				.price-filter-group {
+					padding-top: 0.5rem;
+				}
+			}
+
+			@media (min-width: 768px) and (max-width: 991.98px) {
+				.date-picker-wrapper {
+					width: auto;
+					margin-bottom: 0;
+				}
+
+				.filter-group {
+					gap: 0.75rem;
+				}
+
+				.filter-group .btn-outline-secondary {
+					width: auto;
+					margin-top: 0;
+				}
+
+				.form-check {
+					margin-right: 1.5rem;
+					margin-bottom: 0;
+				}
+
+				.price-inputs {
+					flex-direction: row;
+					gap: 15px;
+				}
+
+				.price-filter-group {
+					padding-top: 0;
+				}
+
+				.summary-item {
+					padding: 0.25rem 0;
+					border-bottom: none;
+				}
+			}
+
+			.status-count {
+				margin-left: 8px;
+				padding: 2px 8px;
+			}
+
+			.table-responsive {
+				margin-top: 1rem;
+			}
+
+			.form-control,
+			.input-group {
+				margin-bottom: 0.5rem;
+			}
+
+			.d-flex.justify-content-between.align-items-center.mb-4 {
+				margin-bottom: 1.5rem !important;
+			}
+
+			@media (max-width: 768px) {
+				.table th {
+					white-space: nowrap;
+					padding: 12px 8px;
+				}
+
+				.table td {
+					padding: 12px 8px;
+				}
+			}
+
+			@media (min-width: 768px) and (max-width: 991.98px) {
+				.row.g-3.mb-4 {
+					margin-bottom: 1.5rem !important;
+				}
+
+				.filter-group {
+					flex-wrap: nowrap;
+				}
+
+				.search-input {
+					max-width: none;
+				}
+			}
+
+			.records-summary .row.g-3 {
+				--bs-gutter-x: 1.5rem;
+				--bs-gutter-y: 1rem;
+			}
+
+			.price-inputs .input-group .form-control {
+				height: 38px;
+			}
+
+			.price-inputs .input-group-text {
+				padding: 0.375rem 0.75rem;
+			}
+
+            .logo a{
+                text-decoration: none;
+                color: #000000;
+            }
+            
+		</style>
+	</head>
+	<body>
+		<div class="container py-4">
+			<!-- Header -->
+			<div class="d-flex justify-content-between align-items-center mb-4">
+				<h1 class="h2 logo"><a href="index.html">Boston Auction</a></h1>
+				<button
+					class="btn btn-outline-primary"
+					onclick="exportToExcel()"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="16"
+						height="16"
+						fill="currentColor"
+						class="bi bi-download me-2"
+						viewBox="0 0 16 16"
+					>
+						<path
+							d="M8 0a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 12.293V.5A.5.5 0 0 1 8 0z"
+						/>
+					</svg>
+					Export to Excel
+				</button>
+			</div>
+
+			<!-- Filters -->
+			<div class="row g-3 mb-4">
+				<!-- Date Filters -->
+				<div class="col-md-8">
+					<div class="filter-group">
+						<div class="date-picker-wrapper">
+							<input
+								type="text"
+								class="form-control"
+								id="fromDate"
+								placeholder="From date"
+							/>
+						</div>
+						<div class="date-picker-wrapper">
+							<input
+								type="text"
+								class="form-control"
+								id="toDate"
+								placeholder="To date"
+							/>
+						</div>
+						<button
+							class="btn btn-outline-secondary"
+							onclick="resetFilters()"
+						>
+							Reset Filters
+						</button>
+					</div>
+				</div>
+
+				<!-- Search -->
+				<div class="col-md-4">
+					<input
+						type="text"
+						class="form-control search-input"
+						id="searchInput"
+						placeholder="Search any field..."
+						onkeyup="applyFilters()"
+					/>
+				</div>
+
+				<!-- Status Filters -->
+				<div class="col-12">
+					<div class="filter-group">
+						<div class="form-check">
+							<input
+								class="form-check-input"
+								type="checkbox"
+								id="activeCheck"
+								checked
+								onchange="applyFilters()"
+							/>
+							<label class="form-check-label" for="activeCheck">
+								Active
+								<span
+									class="status-count active"
+									id="activeCount"
+									>0</span
+								>
+							</label>
+						</div>
+						<div class="form-check">
+							<input
+								class="form-check-input"
+								type="checkbox"
+								id="postponedCheck"
+								checked
+								onchange="applyFilters()"
+							/>
+							<label
+								class="form-check-label"
+								for="postponedCheck"
+							>
+								Postponed
+								<span
+									class="status-count postponed"
+									id="postponedCount"
+									>0</span
+								>
+							</label>
+						</div>
+						<div class="form-check">
+							<input
+								class="form-check-input"
+								type="checkbox"
+								id="cancelledCheck"
+								checked
+								onchange="applyFilters()"
+							/>
+							<label
+								class="form-check-label"
+								for="cancelledCheck"
+							>
+								Cancelled
+								<span
+									class="status-count cancelled"
+									id="cancelledCount"
+									>0</span
+								>
+							</label>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Records Summary -->
+			<div class="records-summary">
+				<div class="row g-3">
+					<!-- First Row on Mobile - Stats and Breakdown -->
+					<div class="col-md-6 col-lg-3">
+						<div class="summary-item">
+							<strong>Records Showing:</strong>
+							<span id="totalRecords">0</span> of
+							<span id="totalAllRecords">0</span>
+						</div>
+					</div>
+					<div class="col-md-6 col-lg-4">
+						<div class="summary-item">
+							<strong>Status Breakdown:</strong>
+							<span id="statusBreakdown"></span>
+						</div>
+					</div>
+					<!-- Second Row on Mobile - Price Range -->
+					<div class="col-lg-5">
+						<div class="price-filter-group">
+							<div class="price-inputs">
+								<div class="input-group">
+									<span class="input-group-text">$</span>
+									<input
+										type="number"
+										class="form-control"
+										id="minDeposit"
+										placeholder="Min Deposit"
+										onchange="applyFilters()"
+									/>
+								</div>
+								<div class="input-group">
+									<span class="input-group-text">$</span>
+									<input
+										type="number"
+										class="form-control"
+										id="maxDeposit"
+										placeholder="Max Deposit"
+										onchange="applyFilters()"
+									/>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Table -->
+			<div class="table-responsive">
+				<table class="table">
+					<thead>
+						<tr>
+							<th>Date</th>
+							<th>Time</th>
+							<th>Status</th>
+							<th>Address</th>
+							<th>City</th>
+							<th>State</th>
+							<th>Zip Code</th>
+							<th>County</th>
+							<th class="text-end">Deposit</th>
+						</tr>
+					</thead>
+					<tbody id="auctionTableBody"></tbody>
+				</table>
+			</div>
+		</div>
+
+		<!-- Required Scripts -->
+		<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+
+		<script>
+			// Initial Data
+			const initialData = [
+				{
+					id: 1,
+					date: new Date("2024-11-18"),
+					time: "11:00 AM",
+					status: "On_Time",
+					address: "79 5th Street",
+					city: "Montague",
+					state: "MA",
+					zipCode: "01376",
+					county: "Franklin",
+					deposit: 5000,
+				},
+				{
+					id: 2,
+					date: new Date("2024-11-19"),
+					time: "2:00 PM",
+					status: "Postponed",
+					address: "12 Clifford Street",
+					city: "Pittsfield",
+					state: "MA",
+					zipCode: "01201",
+					county: "Berkshire",
+					deposit: 5000,
+				},
+				{
+					id: 3,
+					date: new Date("2024-11-20"),
+					time: "11:00 AM",
+					status: "Cancelled",
+					address: "9 Marcy Road",
+					city: "Mattapan",
+					state: "MA",
+					zipCode: "02126",
+					county: "Suffolk",
+					deposit: 10000,
+				},
+			];
+
+			let currentData = [...initialData];
+
+			// Initialize Datepickers
+			$(document).ready(function () {
+				$("#fromDate, #toDate")
+					.datepicker({
+						format: "mm/dd/yyyy",
+						autoclose: true,
+						todayHighlight: true,
+					})
+					.on("changeDate", function () {
+						applyFilters();
+					});
+
+				// Initial render
+				renderTable(currentData);
+			});
+
+			// Helper function to format date
+			function formatDate(date) {
+				const d = new Date(date);
+				return `${(d.getMonth() + 1).toString().padStart(2, "0")}/${d
+					.getDate()
+					.toString()
+					.padStart(2, "0")}/${d.getFullYear().toString().slice(-2)}`;
+			}
+
+			// Get status color class
+			function getStatusColorClass(status) {
+				switch (status) {
+					case "On_Time":
+						return "status-on-time";
+					case "Postponed":
+						return "status-postponed";
+					case "Cancelled":
+						return "status-cancelled";
+					default:
+						return "";
+				}
+			}
+
+			// Function to check if a date is within range
+			function isDateInRange(date, fromDate, toDate) {
+				const checkDate = new Date(date).setHours(0, 0, 0, 0);
+
+				if (fromDate && toDate) {
+					return (
+						checkDate >= fromDate.setHours(0, 0, 0, 0) &&
+						checkDate <= toDate.setHours(0, 0, 0, 0)
+					);
+				} else if (fromDate) {
+					return checkDate >= fromDate.setHours(0, 0, 0, 0);
+				} else if (toDate) {
+					return checkDate <= toDate.setHours(0, 0, 0, 0);
+				}
+
+				return true;
+			}
+
+			// Update status counts
+			function updateStatusCounts(data) {
+				const counts = {
+					total: data.length,
+					totalAll: initialData.length,
+					On_Time: data.filter((item) => item.status === "On_Time")
+						.length,
+					Postponed: data.filter(
+						(item) => item.status === "Postponed"
+					).length,
+					Cancelled: data.filter(
+						(item) => item.status === "Cancelled"
+					).length,
+				};
+
+				// Update total records
+				document.getElementById("totalRecords").textContent =
+					counts.total;
+				document.getElementById("totalAllRecords").textContent =
+					counts.totalAll;
+
+				// Update status counts
+				document.getElementById("activeCount").textContent =
+					counts.On_Time;
+				document.getElementById("postponedCount").textContent =
+					counts.Postponed;
+				document.getElementById("cancelledCount").textContent =
+					counts.Cancelled;
+
+				// Update status breakdown text
+				const breakdown = `
+        <span class="status-count active">${counts.On_Time} Active</span>
+        <span class="status-count postponed">${counts.Postponed} Postponed</span>
+        <span class="status-count cancelled">${counts.Cancelled} Cancelled</span>
+    `;
+				document.getElementById("statusBreakdown").innerHTML =
+					breakdown;
+			}
+
+			// Render table
+			function renderTable(data) {
+				const tableBody = document.getElementById("auctionTableBody");
+				tableBody.innerHTML = "";
+
+				data.forEach((item) => {
+					const row = document.createElement("tr");
+					row.innerHTML = `
+            <td>${formatDate(item.date)}</td>
+            <td>${item.time}</td>
+            <td class="${getStatusColorClass(
+				item.status
+			)}">${item.status.replace("_", " ")}</td>
+            <td>${item.address}</td>
+            <td>${item.city}</td>
+            <td>${item.state}</td>
+            <td>${item.zipCode}</td>
+            <td>${item.county}</td>
+            <td class="text-end">$${item.deposit.toLocaleString()}</td>
+        `;
+					tableBody.appendChild(row);
+				});
+
+				// Update counts after rendering
+				updateStatusCounts(data);
+			}
+
+			// Apply filters
+			function applyFilters() {
+				const fromDate = $("#fromDate").datepicker("getDate");
+				const toDate = $("#toDate").datepicker("getDate");
+				const searchTerm = document
+					.getElementById("searchInput")
+					.value.toLowerCase();
+				const activeChecked =
+					document.getElementById("activeCheck").checked;
+				const postponedChecked =
+					document.getElementById("postponedCheck").checked;
+				const cancelledChecked =
+					document.getElementById("cancelledCheck").checked;
+
+				let filteredData = initialData.filter((item) => {
+					// Status filter
+					if (item.status === "On_Time" && !activeChecked)
+						return false;
+					if (item.status === "Postponed" && !postponedChecked)
+						return false;
+					if (item.status === "Cancelled" && !cancelledChecked)
+						return false;
+
+					// Date filter
+					if (!isDateInRange(item.date, fromDate, toDate))
+						return false;
+
+					// Search filter - check all fields
+					if (searchTerm) {
+						const searchableValues = [
+							formatDate(item.date),
+							item.time,
+							item.status,
+							item.address,
+							item.city,
+							item.state,
+							item.zipCode,
+							item.county,
+							item.deposit.toString(),
+						];
+						return searchableValues.some((value) =>
+							value.toLowerCase().includes(searchTerm)
+						);
+					}
+
+					return true;
+				});
+
+				currentData = filteredData; // Update current data for export
+				renderTable(filteredData);
+			}
+
+			// Reset filters
+			// Reset filters
+			function resetFilters() {
+				$("#fromDate").datepicker("clearDates");
+				$("#toDate").datepicker("clearDates");
+				document.getElementById("searchInput").value = "";
+				document.getElementById("activeCheck").checked = true;
+				document.getElementById("postponedCheck").checked = true;
+				document.getElementById("cancelledCheck").checked = true;
+				document.getElementById("minDeposit").value = ""; // Clear min deposit
+				document.getElementById("maxDeposit").value = ""; // Clear max deposit
+
+				currentData = [...initialData];
+				renderTable(currentData);
+			}
+
+			// Export to Excel function
+			function exportToExcel() {
+				// Create CSV content
+				let csv =
+					"Date,Time,Status,Address,City,State,Zip Code,County,Deposit\n";
+
+				currentData.forEach((item) => {
+					csv += `${formatDate(item.date)},${item.time},${
+						item.status
+					},${item.address},${item.city},${item.state},${
+						item.zipCode
+					},${item.county},$${item.deposit}\n`;
+				});
+
+				// Create and trigger download
+				const blob = new Blob([csv], { type: "text/csv" });
+				const url = window.URL.createObjectURL(blob);
+				const a = document.createElement("a");
+				a.setAttribute("hidden", "");
+				a.setAttribute("href", url);
+				a.setAttribute("download", "auction_data.csv");
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+			}
+
+			// Apply filters
+			function applyFilters() {
+				const fromDate = $("#fromDate").datepicker("getDate");
+				const toDate = $("#toDate").datepicker("getDate");
+				const searchTerm = document
+					.getElementById("searchInput")
+					.value.toLowerCase();
+				const activeChecked =
+					document.getElementById("activeCheck").checked;
+				const postponedChecked =
+					document.getElementById("postponedCheck").checked;
+				const cancelledChecked =
+					document.getElementById("cancelledCheck").checked;
+
+				// Get deposit range values
+				const minDeposit = document.getElementById("minDeposit").value
+					? parseFloat(document.getElementById("minDeposit").value)
+					: null;
+				const maxDeposit = document.getElementById("maxDeposit").value
+					? parseFloat(document.getElementById("maxDeposit").value)
+					: null;
+
+				let filteredData = initialData.filter((item) => {
+					// Status filter
+					if (item.status === "On_Time" && !activeChecked)
+						return false;
+					if (item.status === "Postponed" && !postponedChecked)
+						return false;
+					if (item.status === "Cancelled" && !cancelledChecked)
+						return false;
+
+					// Date filter
+					if (!isDateInRange(item.date, fromDate, toDate))
+						return false;
+
+					// Deposit range filter
+					if (minDeposit !== null && item.deposit < minDeposit)
+						return false;
+					if (maxDeposit !== null && item.deposit > maxDeposit)
+						return false;
+
+					// Search filter - check all fields
+					if (searchTerm) {
+						const searchableValues = [
+							formatDate(item.date),
+							item.time,
+							item.status,
+							item.address,
+							item.city,
+							item.state,
+							item.zipCode,
+							item.county,
+							item.deposit.toString(),
+						];
+						return searchableValues.some((value) =>
+							value.toLowerCase().includes(searchTerm)
+						);
+					}
+
+					return true;
+				});
+
+				currentData = filteredData; // Update current data for export
+				renderTable(filteredData);
+			}
+		</script>
+	</body>
+</html>
